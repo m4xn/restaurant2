@@ -1,0 +1,1 @@
+# A web-based restaurant reservation system that allows customers to book tables online. Staff can monitor 15 tables in real time, manage reservations, and check in guests. If a customer does not arrive within 15 minutes, the reservation is automatically cancelled and the table becomes available for walk-in customers.

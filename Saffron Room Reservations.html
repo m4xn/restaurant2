@@ -1,0 +1,636 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Saffron Room Reservations</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Figtree:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: one top bar with two tabs. Book is a form beside the guest's own bookings.
+   Floor is a 15-table grid beside the day's reservation list. */
+:root {
+  --bg: #F2F4F1; --surface: #FFFFFF; --surface2: #E9EDE9; --fg: #17211D; --muted: #56635C; --line: #D3DAD5;
+  --accent: #1E5A49; --accent-fg: #FFFFFF;
+  --free: #2A7650; --free-bg: #DDEFE5;
+  --soon: #8A5E0C; --soon-bg: #F6E8C8;
+  --wait: #1D5C97; --wait-bg: #D9E8F6;
+  --busy: #A63F2E; --busy-bg: #F5DDD7;
+  --display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", sans-serif;
+  --body: "Figtree", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #101714; --surface: #18211D; --surface2: #202B26; --fg: #E7EEE9; --muted: #9AA9A1; --line: #2C3933;
+  --accent: #6FC2A3; --accent-fg: #0E1A15;
+  --free: #6FCB9B; --free-bg: #1B3427; --soon: #E3B35B; --soon-bg: #3A2E14;
+  --wait: #7DB6EA; --wait-bg: #17293B; --busy: #EE8F7C; --busy-bg: #3D1F19; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #101714; --surface: #18211D; --surface2: #202B26; --fg: #E7EEE9; --muted: #9AA9A1; --line: #2C3933;
+  --accent: #6FC2A3; --accent-fg: #0E1A15;
+  --free: #6FCB9B; --free-bg: #1B3427; --soon: #E3B35B; --soon-bg: #3A2E14;
+  --wait: #7DB6EA; --wait-bg: #17293B; --busy: #EE8F7C; --busy-bg: #3D1F19; color-scheme: dark; }
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 15px; line-height: 1.45;
+  padding-block: 12px 40px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.app { max-width: 1240px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+/* top bar */
+.top { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; padding-block: 8px; border-bottom: 1px solid var(--line); }
+.brand { display: flex; align-items: baseline; gap: 10px; flex: 1 1 auto; min-width: 0; }
+.brand-name { font-family: var(--display); font-weight: 700; font-size: 26px; letter-spacing: -0.02em; }
+.brand-sub { color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: 0.12em; }
+.tabs { display: flex; gap: 4px; background: var(--surface2); padding: 4px; border-radius: 10px; }
+.tab { border: 0; background: transparent; padding: 8px 16px; border-radius: 7px; cursor: pointer; font-weight: 600; color: var(--muted); }
+.tab[aria-selected="true"] { background: var(--surface); color: var(--fg); box-shadow: 0 1px 2px rgb(0 0 0 / .12); }
+.clock { color: var(--muted); font-size: 14px; }
+
+.net { padding: 10px 14px; border-radius: 8px; background: var(--soon-bg); color: var(--soon); font-weight: 500; }
+
+/* shared controls */
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 20px; min-width: 0; }
+h2 { font-family: var(--display); font-size: 20px; letter-spacing: -0.01em; margin: 0 0 14px; font-weight: 700; }
+h3 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin: 0 0 10px; font-weight: 600; }
+label { display: block; font-weight: 600; font-size: 13px; margin-bottom: 6px; }
+input, select, textarea { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); }
+textarea { resize: vertical; min-height: 64px; }
+.btn { border: 1px solid var(--line); background: var(--surface); padding: 9px 14px; border-radius: 8px; cursor: pointer; font-weight: 600; white-space: nowrap; }
+.btn:hover { background: var(--surface2); }
+.btn.primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+.btn.primary:hover { filter: brightness(1.08); }
+.btn.danger { color: var(--busy); }
+.btn.small { padding: 5px 10px; font-size: 13px; }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+
+/* book view */
+.book { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 900px) { .book { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); align-items: start; } }
+.grid2 { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+.field { margin-bottom: 14px; min-width: 0; }
+.slots { display: grid; grid-template-columns: repeat(auto-fill, minmax(86px, 1fr)); gap: 8px; }
+.slot { border: 1px solid var(--line); background: var(--bg); border-radius: 8px; padding: 8px 4px; cursor: pointer; text-align: center; font-family: var(--mono); font-weight: 500; line-height: 1.2; }
+.slot small { display: block; font-family: var(--body); font-size: 11px; color: var(--muted); font-weight: 500; }
+.slot:hover:not(:disabled) { border-color: var(--accent); }
+.slot[aria-pressed="true"] { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+.slot[aria-pressed="true"] small { color: inherit; }
+.slot:disabled { opacity: .4; cursor: not-allowed; text-decoration: line-through; }
+.hint { color: var(--muted); font-size: 13px; margin: 8px 0 0; }
+.rule { display: flex; gap: 10px; background: var(--soon-bg); color: var(--soon); border-radius: 8px; padding: 12px 14px; font-weight: 500; margin-bottom: 16px; }
+.stack { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.ticket { border: 1px dashed var(--line); border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 4px; }
+.ticket + .ticket { margin-top: 10px; }
+.ticket .when { font-family: var(--display); font-weight: 700; font-size: 18px; }
+.ticket .meta { color: var(--muted); font-size: 13px; }
+.ticket .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; margin-top: 6px; }
+.confirm { border-color: var(--free); background: var(--free-bg); }
+.code { font-family: var(--mono); font-size: 20px; letter-spacing: 0.15em; font-weight: 500; }
+
+/* chips */
+.chip { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 600; background: var(--surface2); color: var(--muted); white-space: nowrap; }
+.chip.free { background: var(--free-bg); color: var(--free); }
+.chip.reserved { background: var(--soon-bg); color: var(--soon); }
+.chip.awaiting { background: var(--wait-bg); color: var(--wait); }
+.chip.occupied, .chip.cancelled, .chip.noshow { background: var(--busy-bg); color: var(--busy); }
+
+/* floor */
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
+.stat { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+.stat b { display: block; font-family: var(--display); font-size: 28px; line-height: 1.1; letter-spacing: -0.02em; }
+.stat span { color: var(--muted); font-size: 13px; }
+.stat.free b { color: var(--free); } .stat.reserved b { color: var(--soon); } .stat.occupied b { color: var(--busy); }
+.floorwrap { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 1020px) { .floorwrap { grid-template-columns: minmax(0, 1fr) 380px; align-items: start; } }
+.floor { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; }
+.tbl { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 6px; min-width: 0; border-top-width: 4px; }
+.tbl.free { border-top-color: var(--free); }
+.tbl.reserved { border-top-color: var(--soon); }
+.tbl.awaiting { border-top-color: var(--wait); }
+.tbl.occupied { border-top-color: var(--busy); }
+.tbl-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.tbl-no { font-family: var(--display); font-weight: 700; font-size: 30px; line-height: 1; letter-spacing: -0.03em; }
+.pips { display: inline-flex; flex-wrap: wrap; gap: 3px; max-width: 54px; justify-content: flex-end; }
+.pips i { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); opacity: .55; }
+.tbl-line { font-size: 13px; color: var(--muted); overflow-wrap: anywhere; }
+.tbl-line strong { color: var(--fg); font-weight: 600; }
+.tbl-acts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; padding-top: 6px; }
+.bar { height: 4px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--wait); }
+.tbl.awaiting .bar i { animation: none; }
+@media (prefers-reduced-motion: no-preference) { .tbl.awaiting { animation: breathe 2.4s ease-in-out infinite; } }
+@keyframes breathe { 50% { box-shadow: 0 0 0 3px var(--wait-bg); } }
+
+.list-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
+.list-head h2 { margin: 0; }
+.daynav { display: flex; align-items: center; gap: 6px; }
+.resv { display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 4px 10px; padding: 10px 0; border-top: 1px solid var(--line); }
+.resv:first-of-type { border-top: 0; }
+.resv .t { font-family: var(--mono); font-weight: 500; padding-top: 1px; }
+.resv .who { font-weight: 600; overflow-wrap: anywhere; }
+.resv .sub { color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
+.resv .acts { grid-column: 2; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.empty { color: var(--muted); padding: 16px 0; }
+
+/* modal + toast */
+.overlay { position: fixed; inset: 0; background: rgb(0 0 0 / .45); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 20; }
+.modal { background: var(--surface); border-radius: 14px; padding: 22px; width: min(420px, 100%); border: 1px solid var(--line); }
+.modal .acts { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+.warn { background: var(--soon-bg); color: var(--soon); padding: 8px 12px; border-radius: 8px; font-size: 13px; font-weight: 500; margin-bottom: 14px; }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(20px + env(safe-area-inset-bottom, 0px)); background: var(--fg); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-weight: 500; z-index: 30; max-width: calc(100% - 32px); }
+.toast.err { background: var(--busy); color: #fff; }
+</style>
+
+<div class="app">
+  <header class="top">
+    <div class="brand"><span class="brand-name" id="brand">Saffron Room</span><span class="brand-sub">Reservations</span></div>
+    <nav class="tabs" role="tablist" aria-label="Views">
+      <button class="tab" id="tab-book" role="tab" aria-selected="true">Book a table</button>
+      <button class="tab" id="tab-floor" role="tab" aria-selected="false" hidden>Floor</button>
+    </nav>
+    <div class="clock mono" id="clock"></div>
+  </header>
+  <div class="net" id="net" role="status" hidden></div>
+
+  <main>
+    <section id="view-book" class="book" aria-label="Book a table">
+      <form class="card" id="bk-form" novalidate>
+        <h2 id="bk-title">Reserve a table</h2>
+        <div class="grid2">
+          <div class="field"><label for="bk-date">Date</label><input type="date" id="bk-date"></div>
+          <div class="field"><label for="bk-party">Party size</label><select id="bk-party"></select></div>
+        </div>
+        <div class="field">
+          <label id="slots-label">Time</label>
+          <div class="slots" id="slots" role="group" aria-labelledby="slots-label"></div>
+          <p class="hint" id="slots-hint"></p>
+        </div>
+        <div class="grid2">
+          <div class="field"><label for="bk-name">Name</label><input id="bk-name" autocomplete="name" maxlength="60"></div>
+          <div class="field"><label for="bk-phone">Phone</label><input id="bk-phone" type="tel" autocomplete="tel" maxlength="30"></div>
+        </div>
+        <div class="field"><label for="bk-note">Notes <span style="font-weight:400;color:var(--muted)">(allergies, high chair, occasion)</span></label><textarea id="bk-note" maxlength="300"></textarea></div>
+        <button class="btn primary" id="bk-submit" type="submit">Book table</button>
+        <p class="hint" id="bk-error" style="color:var(--busy)" hidden></p>
+      </form>
+      <div class="stack">
+        <div class="rule" role="note"><span aria-hidden="true">⏱</span><span>Tables are held for <strong>15 minutes</strong> after the booked time. After that the reservation is cancelled and the table goes to walk-in guests.</span></div>
+        <div class="card" id="mine-card" hidden><h3>Your bookings</h3><div id="mine"></div></div>
+      </div>
+    </section>
+
+    <section id="view-floor" class="stack" aria-label="Floor" hidden>
+      <div class="stats" id="stats"></div>
+      <div class="floorwrap">
+        <div class="floor" id="floor"></div>
+        <div class="card">
+          <div class="list-head">
+            <h2 id="list-title">Reservations</h2>
+            <div class="daynav">
+              <button class="btn small" id="day-prev" aria-label="Previous day">‹</button>
+              <button class="btn small" id="day-today">Today</button>
+              <button class="btn small" id="day-next" aria-label="Next day">›</button>
+            </div>
+          </div>
+          <div id="list"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="overlay" id="modal" hidden>
+  <form class="modal" id="wi-form" role="dialog" aria-modal="true" aria-labelledby="wi-title">
+    <h2 id="wi-title">Seat walk-in</h2>
+    <div class="warn" id="wi-warn" hidden></div>
+    <div class="field"><label for="wi-party">Party size</label><select id="wi-party"></select></div>
+    <div class="field"><label for="wi-name">Name <span style="font-weight:400;color:var(--muted)">(optional)</span></label><input id="wi-name" maxlength="60"></div>
+    <div class="acts"><button type="button" class="btn" id="wi-cancel">Cancel</button><button type="submit" class="btn primary">Seat guests</button></div>
+  </form>
+</div>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+// ---- Restaurant configuration ------------------------------------------------
+const RESTAURANT = "Saffron Room";
+// 15 tables: 4 two-tops, 6 four-tops, 3 six-tops, 2 eight-tops
+const TABLES = [
+  { id: 1, seats: 2 }, { id: 2, seats: 2 }, { id: 3, seats: 2 }, { id: 4, seats: 2 },
+  { id: 5, seats: 4 }, { id: 6, seats: 4 }, { id: 7, seats: 4 }, { id: 8, seats: 4 }, { id: 9, seats: 4 }, { id: 10, seats: 4 },
+  { id: 11, seats: 6 }, { id: 12, seats: 6 }, { id: 13, seats: 6 },
+  { id: 14, seats: 8 }, { id: 15, seats: 8 },
+];
+const MIN = 60000;
+const DURATION = 90 * MIN;      // how long a party occupies a table
+const GRACE = 15 * MIN;         // reservation is released this long after its start time
+const SOON = 30 * MIN;          // table shows as "Reserved" this long before start
+const WALKIN_BUFFER = 60 * MIN; // free table counts as walk-in ready if next booking is this far away
+const OPEN_H = 12, LAST_H = 22, SLOT_MIN = 30; // first and last seating, slot length
+const MAX_PARTY = 8, BOOK_DAYS = 30;
+
+// ---- Time helpers ------------------------------------------------------------
+const pad = (n) => String(n).padStart(2, "0");
+function fmtTime(ms) { const d = new Date(ms); return pad(d.getHours()) + ":" + pad(d.getMinutes()); }
+function dateKey(ms) { const d = new Date(ms); return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }
+function parseDateKey(k) { const [y, m, d] = k.split("-").map(Number); return new Date(y, m - 1, d); }
+function startOfDay(ms) { const d = new Date(ms); d.setHours(0, 0, 0, 0); return d.getTime(); }
+function fmtClock(ms) { const s = Math.max(0, Math.ceil(ms / 1000)); return pad(Math.floor(s / 60)) + ":" + pad(s % 60); }
+
+// Seating times offered on a given day that are still in the future.
+function slotsFor(key, now) {
+  const base = parseDateKey(key), out = [];
+  for (let m = OPEN_H * 60; m <= LAST_H * 60; m += SLOT_MIN) {
+    const t = new Date(base.getFullYear(), base.getMonth(), base.getDate(), 0, m).getTime();
+    if (t > now) out.push(t);
+  }
+  return out;
+}
+
+// ---- Reservation logic -------------------------------------------------------
+// status: booked | seated | completed | cancelled | noshow
+function isExpired(r, now) { return r.status === "booked" && now >= r.start + GRACE; }
+function effStatus(r, now) { return isExpired(r, now) ? "noshow" : r.status; }
+
+// The window during which a reservation blocks its table, or null.
+function hold(r, now) {
+  if (r.status === "booked" && !isExpired(r, now)) return [r.start, r.start + DURATION];
+  if (r.status === "seated") { const s = r.seatedAt || r.start; return [s, Math.max(s + DURATION, now + 30 * MIN)]; } // overdue guests still block the table
+  return null;
+}
+function overlaps(a, b) { return a[0] < b[1] && b[0] < a[1]; }
+
+function tableBusy(tableId, from, to, rs, now, ignoreId) {
+  return rs.some((r) => {
+    if (r.tableId !== tableId || r.id === ignoreId) return false;
+    const h = hold(r, now);
+    return h && overlaps(h, [from, to]);
+  });
+}
+
+// Smallest table that fits the party and is free for the whole dining window.
+function pickTable(party, start, rs, now, ignoreId) {
+  const fits = TABLES.filter((t) => t.seats >= party).sort((a, b) => a.seats - b.seats || a.id - b.id);
+  return fits.find((t) => !tableBusy(t.id, start, start + DURATION, rs, now, ignoreId)) || null;
+}
+
+// Live state of one table, as shown on the floor.
+function tableState(t, rs, now) {
+  const mine = rs.filter((r) => r.tableId === t.id);
+  const seated = mine.filter((r) => r.status === "seated").sort((a, b) => (b.seatedAt || 0) - (a.seatedAt || 0))[0];
+  if (seated) {
+    const until = (seated.seatedAt || seated.start) + DURATION;
+    return { state: "occupied", r: seated, until, overdue: now > until };
+  }
+  const live = mine.filter((r) => r.status === "booked" && !isExpired(r, now)).sort((a, b) => a.start - b.start);
+  const cur = live.find((r) => now >= r.start - SOON);
+  if (cur) {
+    if (now < cur.start) return { state: "reserved", r: cur };
+    return { state: "awaiting", r: cur, deadline: cur.start + GRACE };
+  }
+  const next = live[0] || null;
+  return { state: "free", next, walkIn: !next || next.start - now >= WALKIN_BUFFER };
+}
+
+// Reservations whose 15-minute window has run out and need cancelling.
+function sweepIds(rs, now) { return rs.filter((r) => isExpired(r, now)).map((r) => r.id); }
+
+// Two guests may book the same table at once. The later booking loses.
+function hasEarlierConflict(me, rs, now) {
+  const h = hold(me, now);
+  if (!h) return false;
+  return rs.some((r) => {
+    if (r.id === me.id || r.tableId !== me.tableId) return false;
+    const hh = hold(r, now);
+    if (!hh || !overlaps(h, hh)) return false;
+    return r.createdAt < me.createdAt || (r.createdAt === me.createdAt && r.id < me.id);
+  });
+}
+
+function makeCode() {
+  const a = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+  let s = "";
+  for (let i = 0; i < 5; i++) s += a[Math.floor(Math.random() * a.length)];
+  return s;
+}
+
+if (typeof module !== "undefined") {
+  module.exports = { TABLES, DURATION, GRACE, SOON, WALKIN_BUFFER, MIN, slotsFor, isExpired, effStatus, hold, tableBusy, pickTable, tableState, sweepIds, hasEarlierConflict, fmtClock, dateKey };
+}
+
+</script>
+<script>
+(function () {
+  const $ = (s) => document.querySelector(s);
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+  let db = null, user = null, uid = null, isStaff = false;
+  let rs = [];            // reservations from today onward
+  let contacts = {};      // reservation id -> {name, phone, note}   (staff only)
+  let view = "book", selStart = null, listDay = dateKey(Date.now()), lastBooking = null, busy = false, walkTable = null;
+
+  $("#brand").textContent = RESTAURANT;
+
+  // ---------- small UI helpers ----------
+  let toastTimer;
+  function toast(msg, err) {
+    const t = $("#toast"); t.textContent = msg; t.className = "toast" + (err ? " err" : ""); t.hidden = false;
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => (t.hidden = true), 4500);
+  }
+  function showNet(msg) { const n = $("#net"); n.textContent = msg; n.hidden = !msg; }
+  const nameOf = (r) => (contacts[r.id] && contacts[r.id].name) || (r.source === "walkin" ? "Walk-in" : isStaff ? "Guest" : "Booked");
+  const pips = (n) => '<span class="pips" aria-label="' + n + ' seats">' + "<i></i>".repeat(n) + "</span>";
+  const dayLabel = (key) => {
+    const today = dateKey(Date.now());
+    if (key === today) return "Today";
+    return parseDateKey(key).toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" });
+  };
+  const longWhen = (ms) => new Date(ms).toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" }) + " at " + fmtTime(ms);
+
+  // ---------- book view ----------
+  function initForm() {
+    const today = dateKey(Date.now());
+    const d = $("#bk-date"); d.min = today; d.max = dateKey(Date.now() + BOOK_DAYS * 86400000); d.value = today;
+    const p = $("#bk-party");
+    for (let i = 1; i <= MAX_PARTY; i++) p.insertAdjacentHTML("beforeend", '<option value="' + i + '">' + i + (i === 1 ? " guest" : " guests") + "</option>");
+    p.value = "2";
+    d.addEventListener("change", () => { selStart = null; renderSlots(); });
+    p.addEventListener("change", () => { renderSlots(); });
+    $("#bk-form").addEventListener("submit", (e) => { e.preventDefault(); submitBooking(); });
+  }
+
+  function renderSlots() {
+    const now = Date.now(), key = $("#bk-date").value || dateKey(now), party = +$("#bk-party").value;
+    const box = $("#slots");
+    const slots = slotsFor(key, now);
+    if (!slots.length) { box.innerHTML = ""; $("#slots-hint").textContent = "No more seatings on this day. Pick another date."; selStart = null; return; }
+    let any = false;
+    box.innerHTML = slots.map((t) => {
+      const ok = !!pickTable(party, t, rs, now);
+      if (ok) any = true;
+      return '<button type="button" class="slot" data-start="' + t + '" aria-pressed="' + (t === selStart) + '"' + (ok ? "" : " disabled") + ">" + fmtTime(t) + "<small>" + (ok ? "open" : "full") + "</small></button>";
+    }).join("");
+    if (selStart && !pickTable(party, selStart, rs, now)) selStart = null;
+    $("#slots-hint").textContent = any ? "Last seating is " + pad(LAST_H) + ":00. Tables are yours for 90 minutes." : "Fully booked for this party size. Try another day or a smaller party.";
+  }
+
+  function renderMine() {
+    const now = Date.now(), box = $("#mine");
+    const mine = uid ? rs.filter((r) => r.uid === uid && r.source !== "walkin" && (r.status === "booked" || r.status === "seated" || now - r.start < 6 * 3600000)).sort((a, b) => a.start - b.start) : [];
+    let html = "";
+    if (lastBooking) {
+      const r = rs.find((x) => x.id === lastBooking);
+      if (r && effStatus(r, now) === "booked") {
+        html += '<div class="ticket confirm"><span class="chip free">Confirmed</span><span class="when">' + esc(longWhen(r.start)) + '</span><span class="meta">Table ' + r.tableId + " · party of " + r.party + '</span><span class="meta">Booking code <span class="code">' + esc(r.code) + "</span></span><span class=\"meta\">Please arrive by " + fmtTime(r.start + GRACE) + ". After that the table is released.</span></div>";
+      }
+    }
+    const others = mine.filter((r) => !(lastBooking && r.id === lastBooking && effStatus(r, now) === "booked"));
+    html += others.map((r) => {
+      const st = effStatus(r, now);
+      const label = { booked: "Booked", seated: "Seated", completed: "Completed", cancelled: "Cancelled", noshow: "Released (no arrival)" }[st];
+      return '<div class="ticket"><span class="when">' + esc(longWhen(r.start)) + '</span><span class="meta">Table ' + r.tableId + " · party of " + r.party + " · code " + esc(r.code) + '</span><div class="row"><span class="chip ' + (st === "booked" ? "reserved" : st === "seated" ? "occupied" : "") + '">' + label + "</span>" +
+        (st === "booked" ? '<button class="btn small danger" data-act="guest-cancel" data-id="' + esc(r.id) + '">Cancel booking</button>' : "") + "</div></div>";
+    }).join("");
+    $("#mine-card").hidden = !html;
+    box.innerHTML = html;
+  }
+
+  async function submitBooking() {
+    if (busy) return;
+    const err = $("#bk-error"); err.hidden = true;
+    const fail = (m) => { err.textContent = m; err.hidden = false; };
+    if (!db || !uid) return fail("Booking is not available in this view. Open the booking link while signed in.");
+    const now = Date.now(), party = +$("#bk-party").value;
+    const name = $("#bk-name").value.trim(), phone = $("#bk-phone").value.trim(), note = $("#bk-note").value.trim();
+    if (!selStart) return fail("Pick a time first.");
+    if (selStart <= now) return fail("That time has passed. Pick a later one.");
+    if (name.length < 2) return fail("Enter the name for the booking.");
+    if (!isStaff && phone.replace(/\D/g, "").length < 7) return fail("Enter a phone number we can reach you on.");
+    const table = pickTable(party, selStart, rs, now);
+    if (!table) { renderSlots(); return fail("Sorry, that time was just taken. Pick another."); }
+    busy = true; $("#bk-submit").disabled = true;
+    try {
+      const ref = db.collection("reservations").doc();
+      const base = { tableId: table.id, party, start: selStart, status: "booked", source: isStaff ? "phone" : "online", code: makeCode(), uid, createdAt: Date.now() };
+      // contact details live in a private doc that only staff can read
+      const cref = db.doc("contacts/" + uid), entry = { name, phone, note };
+      const cs = await cref.get();
+      if (cs.exists) await cref.update({ b: { [ref.id]: entry } }); else await cref.set({ b: { [ref.id]: entry } });
+      await ref.set(base);
+      // two guests can race for one table: re-read and let the later booking move or give way
+      const fresh = (await db.collection("reservations").where("start", ">=", startOfDay(Date.now())).orderBy("start").get()).docs.map((d) => ({ id: d.id, ...d.data() }));
+      const me = fresh.find((r) => r.id === ref.id) || { id: ref.id, ...base };
+      if (hasEarlierConflict(me, fresh, Date.now())) {
+        const alt = pickTable(party, selStart, fresh, Date.now(), ref.id);
+        if (alt && !hasEarlierConflict({ ...me, tableId: alt.id }, fresh, Date.now())) { await ref.update({ tableId: alt.id }); }
+        else { await ref.update({ status: "cancelled", endedAt: Date.now(), reason: "Table taken by an earlier booking" }); renderSlots(); return fail("Someone booked that table a moment earlier. Pick another time."); }
+      }
+      lastBooking = ref.id; selStart = null;
+      $("#bk-note").value = "";
+      toast("Table booked.");
+      renderSlots(); renderMine();
+    } catch (e) {
+      fail("Could not save the booking (" + (e && (e.code || e.message) || "unknown error") + "). Try again.");
+    } finally { busy = false; $("#bk-submit").disabled = false; }
+  }
+
+  // ---------- floor view ----------
+  function renderStats(now) {
+    const sts = TABLES.map((t) => tableState(t, rs, now));
+    const n = (f) => sts.filter(f).length;
+    const released = rs.filter((r) => dateKey(r.start) === dateKey(now) && (r.status === "noshow" || isExpired(r, now))).length;
+    const stat = (cls, v, l) => '<div class="stat ' + cls + '"><b>' + v + "</b><span>" + l + "</span></div>";
+    $("#stats").innerHTML =
+      stat("free", n((s) => s.state === "free"), "Free now") +
+      stat("walkin", n((s) => s.state === "free" && s.walkIn), "Ready for walk-ins") +
+      stat("reserved", n((s) => s.state === "reserved" || s.state === "awaiting"), "Reserved or arriving") +
+      stat("occupied", n((s) => s.state === "occupied"), "Occupied") +
+      stat("", released, "Auto-released today");
+    return sts;
+  }
+
+  function renderFloor() {
+    const now = Date.now(), sts = renderStats(now);
+    $("#floor").innerHTML = TABLES.map((t, i) => {
+      const s = sts[i]; let chip, l1 = "", l2 = "", acts = "", extra = "";
+      const id = s.r ? esc(s.r.id) : "";
+      if (s.state === "occupied") {
+        chip = '<span class="chip occupied">' + (s.overdue ? "Over time" : "Occupied") + "</span>";
+        l1 = "<strong>" + esc(nameOf(s.r)) + "</strong> · party of " + s.r.party;
+        l2 = "Seated " + fmtTime(s.r.seatedAt || s.r.start) + " · until " + fmtTime(s.until);
+        acts = '<button class="btn small" data-act="clear" data-id="' + id + '">Clear table</button>';
+      } else if (s.state === "awaiting") {
+        chip = '<span class="chip awaiting">Arriving</span>';
+        l1 = "<strong>" + esc(nameOf(s.r)) + "</strong> · party of " + s.r.party;
+        l2 = "Booked " + fmtTime(s.r.start) + " · released in <strong class=\"mono\">" + fmtClock(s.deadline - now) + "</strong>";
+        extra = '<div class="bar" aria-hidden="true"><i style="width:' + Math.max(0, Math.min(100, ((s.deadline - now) / GRACE) * 100)) + '%"></i></div>';
+        acts = '<button class="btn small primary" data-act="checkin" data-id="' + id + '">Check in</button><button class="btn small danger" data-act="cancel" data-id="' + id + '">Cancel</button>';
+      } else if (s.state === "reserved") {
+        chip = '<span class="chip reserved">Reserved</span>';
+        l1 = "<strong>" + esc(nameOf(s.r)) + "</strong> · party of " + s.r.party;
+        l2 = "Booked " + fmtTime(s.r.start) + " · in " + Math.max(1, Math.ceil((s.r.start - now) / MIN)) + " min";
+        acts = '<button class="btn small primary" data-act="checkin" data-id="' + id + '">Check in</button><button class="btn small danger" data-act="cancel" data-id="' + id + '">Cancel</button>';
+      } else {
+        chip = '<span class="chip free">Free</span>';
+        l1 = s.next ? "Next booking <strong>" + fmtTime(s.next.start) + "</strong>" : "Open for walk-ins";
+        l2 = s.next && !s.walkIn ? "Short window before the booking" : "";
+        acts = '<button class="btn small primary" data-act="walkin" data-table="' + t.id + '">Seat walk-in</button>';
+      }
+      return '<article class="tbl ' + s.state + '"><div class="tbl-head"><span class="tbl-no">' + t.id + "</span>" + pips(t.seats) + "</div>" + chip +
+        '<div class="tbl-line">' + l1 + "</div>" + (l2 ? '<div class="tbl-line">' + l2 + "</div>" : "") + extra + '<div class="tbl-acts">' + acts + "</div></article>";
+    }).join("");
+  }
+
+  function renderList() {
+    const now = Date.now();
+    $("#list-title").textContent = dayLabel(listDay);
+    const items = rs.filter((r) => dateKey(r.start) === listDay).sort((a, b) => a.start - b.start);
+    if (!items.length) { $("#list").innerHTML = '<p class="empty">No reservations for this day.</p>'; return; }
+    $("#list").innerHTML = items.map((r) => {
+      const st = effStatus(r, now), c = contacts[r.id] || {};
+      const chip = {
+        booked: now >= r.start ? ['awaiting', "Arriving"] : ["reserved", "Booked"],
+        seated: ["occupied", "Seated"], completed: ["", "Done"], cancelled: ["cancelled", "Cancelled"], noshow: ["noshow", "Auto-cancelled"],
+      }[st];
+      const sub = ["Table " + r.tableId, "party of " + r.party, r.source === "walkin" ? "walk-in" : r.source === "phone" ? "phone" : "online", c.phone].filter(Boolean).map(esc).join(" · ");
+      let acts = '<span class="chip ' + chip[0] + '">' + chip[1] + "</span>";
+      if (st === "booked") {
+        const can = now >= r.start - SOON;
+        acts += '<button class="btn small primary" data-act="checkin" data-id="' + esc(r.id) + '"' + (can ? "" : " disabled") + ">Check in</button>" +
+          '<button class="btn small danger" data-act="cancel" data-id="' + esc(r.id) + '">Cancel</button>';
+      } else if (st === "seated") acts += '<button class="btn small" data-act="clear" data-id="' + esc(r.id) + '">Clear table</button>';
+      return '<div class="resv"><span class="t">' + fmtTime(r.start) + '</span><div><div class="who">' + esc(nameOf(r)) + '</div><div class="sub">' + sub + "</div>" +
+        (c.note ? '<div class="sub">Note: ' + esc(c.note) + "</div>" : "") + (st === "noshow" ? '<div class="sub">No arrival within 15 minutes. Table released.</div>' : "") +
+        '</div><div class="acts">' + acts + "</div></div>";
+    }).join("");
+  }
+
+  // ---------- staff actions ----------
+  const find = (id) => rs.find((r) => r.id === id);
+  async function run(fn, ok) {
+    try { await fn(); if (ok) toast(ok); } catch (e) { toast("That did not save (" + (e && (e.code || e.message) || "error") + ").", true); }
+  }
+  const upd = (id, data) => db.doc("reservations/" + id).update(data);
+
+  function checkIn(id) {
+    const r = find(id), now = Date.now();
+    if (!r || r.status !== "booked") return toast("That reservation is no longer active.", true);
+    if (isExpired(r, now)) return toast("The 15 minutes ran out and the reservation was released.", true);
+    return run(() => upd(id, { status: "seated", seatedAt: now }), "Checked in.");
+  }
+
+  function openWalkIn(tid) {
+    const t = TABLES.find((x) => x.id === tid), now = Date.now(), s = tableState(t, rs, now);
+    if (s.state !== "free") return toast("Table " + tid + " is no longer free.", true);
+    walkTable = t;
+    $("#wi-title").textContent = "Seat walk-in at table " + t.id;
+    const p = $("#wi-party"); p.innerHTML = "";
+    for (let i = 1; i <= t.seats; i++) p.insertAdjacentHTML("beforeend", '<option value="' + i + '">' + i + (i === 1 ? " guest" : " guests") + "</option>");
+    p.value = String(Math.min(2, t.seats));
+    $("#wi-name").value = "";
+    const w = $("#wi-warn");
+    if (s.next && s.next.start - now < DURATION) { w.hidden = false; w.textContent = "Booked at " + fmtTime(s.next.start) + ". This party must leave before then."; } else w.hidden = true;
+    $("#modal").hidden = false; p.focus();
+  }
+
+  async function seatWalkIn() {
+    if (!walkTable) return;
+    const t = walkTable, now = Date.now();
+    if (tableState(t, rs, now).state !== "free") { $("#modal").hidden = true; return toast("Table " + t.id + " was just taken.", true); }
+    const party = +$("#wi-party").value, name = $("#wi-name").value.trim();
+    $("#modal").hidden = true; walkTable = null;
+    await run(async () => {
+      const ref = db.collection("reservations").doc();
+      await ref.set({ tableId: t.id, party, start: now, seatedAt: now, status: "seated", source: "walkin", code: "", uid, createdAt: now });
+      if (name) {
+        const cref = db.doc("contacts/" + uid), s = await cref.get(), entry = { name, phone: "", note: "" };
+        if (s.exists) await cref.update({ b: { [ref.id]: entry } }); else await cref.set({ b: { [ref.id]: entry } });
+      }
+    }, "Table " + t.id + " seated.");
+  }
+
+  // The 15-minute rule: any open staff view releases overdue reservations.
+  let sweeping = false;
+  async function sweep() {
+    if (sweeping || !db || !isStaff) return;
+    const ids = sweepIds(rs, Date.now());
+    if (!ids.length) return;
+    sweeping = true;
+    try {
+      for (const id of ids) {
+        try { await upd(id, { status: "noshow", endedAt: Date.now(), reason: "No arrival within 15 minutes" }); } catch (e) { /* another staff view may have done it */ }
+      }
+    } finally { sweeping = false; }
+  }
+
+  // ---------- events ----------
+  document.addEventListener("click", (e) => {
+    const slot = e.target.closest(".slot");
+    if (slot && !slot.disabled) { selStart = +slot.dataset.start; renderSlots(); return; }
+    const b = e.target.closest("[data-act]"); if (!b || !db) return;
+    const id = b.dataset.id, act = b.dataset.act;
+    if (act === "checkin") checkIn(id);
+    else if (act === "walkin") openWalkIn(+b.dataset.table);
+    else if (act === "clear") run(() => upd(id, { status: "completed", endedAt: Date.now() }), "Table cleared.");
+    else if (act === "cancel") run(() => upd(id, { status: "cancelled", endedAt: Date.now(), reason: "Cancelled by staff" }), "Reservation cancelled.");
+    else if (act === "guest-cancel") run(() => upd(id, { status: "cancelled", endedAt: Date.now(), reason: "Cancelled by guest" }), "Booking cancelled.");
+  });
+  $("#wi-form").addEventListener("submit", (e) => { e.preventDefault(); seatWalkIn(); });
+  $("#wi-cancel").addEventListener("click", () => { $("#modal").hidden = true; walkTable = null; });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") { $("#modal").hidden = true; walkTable = null; } });
+  const shiftDay = (n) => { listDay = dateKey(parseDateKey(listDay).getTime() + n * 86400000 + 3600000); renderList(); };
+  $("#day-prev").addEventListener("click", () => shiftDay(-1));
+  $("#day-next").addEventListener("click", () => shiftDay(1));
+  $("#day-today").addEventListener("click", () => { listDay = dateKey(Date.now()); renderList(); });
+
+  function setView(v) {
+    if (v === "floor" && !isStaff) v = "book";
+    view = v;
+    $("#view-book").hidden = v !== "book"; $("#view-floor").hidden = v !== "floor";
+    $("#tab-book").setAttribute("aria-selected", v === "book"); $("#tab-floor").setAttribute("aria-selected", v === "floor");
+    try { history.replaceState(null, "", "#" + v); } catch (e) { /* hash only */ }
+    renderAll();
+  }
+  $("#tab-book").addEventListener("click", () => setView("book"));
+  $("#tab-floor").addEventListener("click", () => setView("floor"));
+
+  function renderAll() {
+    if (view === "book") { renderSlots(); renderMine(); } else { renderFloor(); renderList(); }
+  }
+
+  // ---------- start ----------
+  let tick = 0;
+  setInterval(() => {
+    tick++;
+    $("#clock").textContent = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false });
+    if (view === "floor") { renderFloor(); renderList(); }
+    else if (tick % 20 === 0) renderSlots();
+    if (tick % 3 === 0) sweep();
+  }, 1000);
+
+  async function init() {
+    initForm(); renderSlots();
+    const c = window.claude;
+    try { db = c && c.use ? await c.use("db") : null; user = c && c.use ? await c.use("user") : null; } catch (e) { db = null; }
+    try { uid = user ? await user.id() : null; isStaff = user ? await user.canEdit() : false; } catch (e) { /* stay a guest */ }
+    $("#tab-floor").hidden = !isStaff;
+    if (isStaff) { $("#bk-title").textContent = "Phone or desk booking"; $("#bk-phone").required = false; }
+    if (!db || !uid) { showNet("Booking is not available in this view. Open the booking link while signed in."); $("#bk-submit").disabled = true; }
+    else {
+      showNet("Connecting to the booking system…");
+      const slow = setTimeout(() => showNet("Still trying to reach the booking system. Availability may be out of date."), 10000);
+      db.collection("reservations").where("start", ">=", startOfDay(Date.now())).orderBy("start").onSnapshot((snap) => {
+        rs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        if (!snap.metadata.fromCache) { clearTimeout(slow); showNet(""); }
+        renderAll(); sweep();
+      }, (e) => { clearTimeout(slow); showNet("Lost connection to the booking system (" + (e && e.code || "error") + "). Reload to try again."); });
+      if (isStaff) db.collection("contacts").onSnapshot((snap) => {
+        const m = {}; snap.docs.forEach((d) => Object.assign(m, (d.data() || {}).b || {}));
+        contacts = m; renderAll();
+      }, () => { /* staff view still works without names */ });
+    }
+    const h = (location.hash || "").replace("#", "");
+    setView(h === "floor" ? "floor" : "book");
+  }
+  init();
+})();
+</script>
+
+</body></html>
